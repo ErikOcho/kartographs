@@ -1,0 +1,57 @@
+# Format Style Options - Created with Clang Power Tools
+---
+AccessModifierOffset: -4
+AlignAfterOpenBracket: BlockIndent
+# AlignConsecutiveAssignments: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: true
+BasedOnStyle: LLVM
+BinPackParameters: false
+BinPackArguments: false
+BraceWrapping: 
+  AfterCaseLabel: false
+  AfterClass: true
+  AfterControlStatement: false
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterObjCDeclaration: false
+  AfterStruct: true
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+BreakBeforeInheritanceComma: false
+BreakConstructorInitializers: AfterColon
+ColumnLimit: 120
+Cpp11BracedListStyle: true
+ForEachMacros: 
+  - foreach
+  - Q_FOREACH
+  - BOOST_FOREACH
+  - BOOST_TEST_CONTEXT
+  - CORE_SYNCHRONIZED
+  - VG_SAVE_MATRIX
+IndentWidth: 4
+Language: Cpp
+MaxEmptyLinesToKeep: 2
+PackConstructorInitializers: NextLine
+PointerAlignment: Left
+SortIncludes: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: true
+SpacesBeforeTrailingComments: 2
+TabWidth: 4
+UseTab: ForContinuationAndIndentation
+...

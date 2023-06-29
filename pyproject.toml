@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kartographs"
+version = "0.1.0"
+description = "Kartografove."
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.22.4",
+    "kivy>=2.0.0",
+    "pandas>=1.4.0",
+    "matplotlib>=3.5.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "coverage[toml]==7.1.0",
+    "mypy==1.0.1",
+    "pycodestyle==2.10.0",
+    "pydocstyle==6.3.0",
+    "pylint==2.16.2",
+    "vulture==2.7",
+    "xenon==0.9.0",
+]
+
+[tool.setuptools.package-dir]
+sigma_tables = "kartographs"
+
+[tool.coverage.run]
+branch = true
+source = ["."]
+omit = ["venv/*", "test/*"]
+
+[tool.coverage.report]
+fail_under = 1
+
+[tool.mypy]
+strict = true
+
+[tool.pylint.BASIC]
+no-docstring-rgx = " "
+accept-no-param-doc = false
+accept-no-raise-doc = false
+accept-no-return-doc = false
+
+# [tool.pylint.MASTER]
+# load-plugins = ["pylint.extensions.docparams", "pylint.extensions.docstyle"]
+
+[tool.pylint."messages control"]
+disable = ["R", "missing-function-docstring", "missing-class-docstring"]
+
+[tool.vulture]
+min_confidence = 100
