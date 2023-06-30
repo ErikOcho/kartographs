@@ -1,11 +1,37 @@
-<MyLayout>
-	BoxLayout:
-		orientation: "vertical"
-		size: root.width, root.height
+#:kivy 2.0.0
 
-		padding: 50
-		spacing: 20
-		
-		Image:
-			source: './media/2.png' 
-		
+<KartographsLayout>:
+	BoxLayout:
+		orientation: 'vertical'
+		BoxLayout:
+			orientation: 'horizontal'
+			BoxLayout:
+				orientation: 'vertical'
+				size_hint_x: 0.2
+				Label:
+					text: 'Obdobie'
+					font_size: 15
+					size_hint_y: 0.2
+				Label:
+					id: 'season'
+					text: "sdfs" # self.season
+					font_size: 15
+					size_hint_y: 0.8
+			Image:
+				source: './media/2.png'
+				size_hint_y: 1.0
+				# pos_hint: {'top': 0.1}
+				allow_stretch: True
+			Label:
+				id: 'Game2'
+				text: 'Game2'
+				font_size: 20
+				size_hint_x: 0.2
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint_y: 0.2
+			pos_hint: {'bottom': 0.1}
+			Button:
+				text: 'Generate next'
+			Button:
+				text: 'Next'

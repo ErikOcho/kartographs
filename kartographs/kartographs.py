@@ -9,24 +9,22 @@ from kivy.uix.image import Image
 from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
 from kivy.core.window import Window
+from kivy.utils import platform
 
 Builder.load_file('kartographs.kv')
 
-class MyLayout(Widget):
-    pass
+class KartographsLayout(FloatLayout):
+    window_size = Window.size
 
 
 class KartographsApp(App):
     def build(self):
-        Window.clearcolor = (1, 1, 1, 1)
-        return MyLayout()
-        # f = FloatLayout()
-        # s = Scatter()
-        # l = Label(text="Edureka!", font_size=40)
- 
-        # f.add_widget(s)
-        # s.add_widget(l)
-        # return f
+        if (platform == 'android' or platform == 'ios'):
+            Window.maximize()
+        else:
+            Window.size = (800, 600)
+
+        return KartographsLayout()
  
  
 if __name__ == "__main__":
