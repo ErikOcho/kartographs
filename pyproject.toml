@@ -22,7 +22,7 @@ dev = [
     "pydocstyle==6.3.0",
     "pylint==2.16.2",
     "vulture==2.7",
-    "xenon==0.9.0",
+    "xenon==0.9.0"
 ]
 
 [tool.setuptools.package-dir]
