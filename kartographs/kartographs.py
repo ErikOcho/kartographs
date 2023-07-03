@@ -14,6 +14,7 @@ from kivy.core.window import Window
 from kivy.utils import platform
 from kivy.properties import StringProperty
 from kivy.uix.popup import Popup
+from kivy.uix.button import Button
 
 
 Builder.load_file('kartographs.kv')
@@ -131,19 +132,26 @@ class KartographsLayout(FloatLayout):
     def next(self):
         """We need new card."""
         if self.cards_stack == []:
-            popup = Popup(title='Test popup', content=Label(text='No cards left.'),
-                auto_dismiss=False)
+            # create content and add to the popup
+            content = Button(text='No cards left!!', size_hint=(400, 400))
+            popup = Popup(content=content, auto_dismiss=False)
+
+            # bind the on_press event of the button to the dismiss function
+            content.bind(on_press=popup.dismiss)
+
+            # open the popup
             popup.open()
-        card = self.cards_stack.pop()
-        self.points_left -= card.value
-        if self.points_left <= 0:
-            if self.game_phase == GamePhase.ZIMA:
-                pass  # TODO 
-            else:
-                self.game_phase = GamePhase(self.game_phase.value + 1)
-                self.points_left = self.game_phases_lengths[self.game_phase]
-        self.image_path = card.image
-        self.update_labels()
+        else:
+            card = self.cards_stack.pop()
+            self.points_left -= card.value
+            if self.points_left <= 0:
+                if self.game_phase == GamePhase.ZIMA:
+                    pass  # TODO 
+                else:
+                    self.game_phase = GamePhase(self.game_phase.value + 1)
+                    self.points_left = self.game_phases_lengths[self.game_phase]
+            self.image_path = card.image
+            self.update_labels()
 
 
 class KartographsApp(App):
