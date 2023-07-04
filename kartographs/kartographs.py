@@ -1,4 +1,9 @@
 from enum import Enum
+import re
+import copy
+import random as rnd
+
+from pathlib import Path
 
 import kivy
 kivy.require('2.0.0')  # replace with your current kivy version !
@@ -16,7 +21,6 @@ from kivy.properties import StringProperty
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
 
-
 Builder.load_file('kartographs.kv')
 
 
@@ -27,131 +31,167 @@ class GamePhase(Enum):
     ZIMA = 4
 
 
+class CardType(Enum):
+    SEARCH = 1
+    BEAST = 2
+
+
 class Card():
     """Card class."""
-    def __init__(self, value: int, image: str):
+    def __init__(self, value: int, image: str, type: CardType = CardType.SEARCH):
         self.value: int = value
         self.image: str = image
+        self.type: CardType = type
 
 
-def get_all_cards(cards_dir: str) -> list[Card]:
-    return [
-        Card(2, "./media/2.png"),
-        Card(1, "./media/2.png"),
-        Card(0, "./media/2.png")
-    ]
+def get_all_beast_cards(cards_dir: str) -> list[Card]:
+    """
+    Get all cards from directory.
+    Match any pattern with *.png.
+    Value set to zero.
+    """
+    cards = []
+    path_names = Path(cards_dir).glob('*.png')
+    for file_name in path_names:
+        cards.append(Card(0, file_name.as_posix(), CardType.BEAST))
+    return cards
 
 
-class GamePhases():
-    def __init__(self, points_left: int, game_phase: GamePhase):
-        self.points_left = points_left
-        self.game_phase = game_phase
+def get_all_search_cards(cards_dir: str) -> list[Card]:
+    """Get all serach cards from directory. These cards have cost."""
+    cards = []
+    path_names = Path(cards_dir).glob('*.png')
+    pattern = re.compile(r"(\d+)_.+\.png")
+    for file_name in path_names:
+        res = re.search(pattern, file_name.name)
+        cards.append(Card(int(res.group(1)), file_name.as_posix(), CardType.SEARCH))
+    return cards
 
-    game_phases_lengths = {
-        GamePhase.JAR: 8,
-        GamePhase.LETO: 8,
-        GamePhase.JESEN: 7,
-        GamePhase.ZIMA: 6
-    }
-    game_phase: GamePhase = GamePhase.JAR
-    points_left = game_phases_lengths[game_phase]
+
+class Year():
+    def __init__(self) -> None:
+        self.game_phase = GamePhase.JAR
+        self.game_phases_lengths = {
+            GamePhase.JAR: 8,
+            GamePhase.LETO: 8,
+            GamePhase.JESEN: 7,
+            GamePhase.ZIMA: 6
+        }
+        self.points_left = self.game_phases_lengths[self.game_phase]
 
     def move_by(self, value: int) -> bool:
-        """Move game phase by value. Return True if game phase changed."""
-        self.points_left -= value
+        """Posunie čas o zadanú hodnotu.
+
+        Args:
+            value: hodnota vyjadrujúca posun času.
+
+        Returns:
+            Príznak či nasleduje zmena fázy hry.
+        """
+        new_phase_begun: bool = False
         if self.points_left <= 0:
-            if self.game_phase == GamePhase.ZIMA:
-                return True  # TODO Ukoncit hru.
-            else:
-                self.game_phase = GamePhase(self.game_phase.value + 1)
-                self.points_left = self.game_phases_lengths[self.game_phase]
-                return True
-        else:
-            return False
+            self.game_phase = GamePhase(self.game_phase.value + 1)
+            self.points_left = self.game_phases_lengths[self.game_phase]
+            new_phase_begun = True
+
+        self.points_left -= value
+        return new_phase_begun
+
+
+def show_final_popup(title: str) -> None:
+    """Show popup with title."""
+    content = Button(text='OK')
+    popup = Popup(title=title, padding=30, content=content,
+                  size_hint=(0.5, 0.2), auto_dismiss=False)
+
+    # bind the on_press event of the button to the dismiss function
+    content.bind(on_press=popup.dismiss)
+    content.bind(on_release=App.get_running_app().stop)
+
+    # open the popup
+    popup.open()
+
+
+class CardsStacks():
+    """Stack of cards."""
+    def __init__(self, free_cards: list[Card], beast_cards: list[Card]):
+        self.free_cards: list[Card] = free_cards
+        self.drawn_cards: list[Card] = []
+        self.beast_cards: list[Card] = beast_cards
+
+        rnd.shuffle(self.beast_cards)
+        rnd.shuffle(self.free_cards)
+
+    def switch_phase(self) -> None:
+        """Shuffle cards together and add one beast."""
+        # Pridam karky ktore boli uz pouzite.
+        self.free_cards = self.free_cards + self.drawn_cards
+        self.drawn_cards = []
+        self.free_cards.append(self.beast_cards.pop())
+
+        rnd.shuffle(self.free_cards)
+
+    def get_card(self) -> Card:
+        """Get card from stack."""
+        self.drawn_cards.append(self.free_cards[-1])
+        return self.free_cards.pop()
 
 
 class Game():
-    def __init__(self, points_left_label, game_phase_label, image_path) -> None:
-        self.points_left_label = points_left_label
-        self.game_phase_label = game_phase_label
-        image_path = image_path
+    """Game class."""
+    def __init__(self):
+        self.cards.switch_phase()
 
-    game_phases_lengths = {
-        GamePhase.JAR: 8,
-        GamePhase.LETO: 8,
-        GamePhase.JESEN: 7,
-        GamePhase.ZIMA: 6
-    }
-    game_phase: GamePhase = GamePhase.JAR
-    points_left = game_phases_lengths[game_phase]
-    cards_stack: list[Card] = get_all_cards("./media")
+    year: Year = Year()
+    all_search_cards: list[Card] = get_all_search_cards("./media/priezkum")
+    all_beasts_cards: list[Card] = get_all_beast_cards("./media/potvory")
+    cards = CardsStacks(all_search_cards, all_beasts_cards)
+    game_over = False
 
-    def update_labels(self):
-        self.points_left_label = str(self.points_left)
-        self.game_phase_label = str(self.game_phase)
-
-    def move_by(self, value: int):
-        """Move game phase by value. Return True if game phase changed."""
-        self.points_left -= value
-        if self.points_left <= 0:
-            if self.game_phase == GamePhase.ZIMA:
-                pass  # TODO 
-            else:
-                self.game_phase = GamePhase(self.game_phase.value + 1)
-                self.points_left = self.game_phases_lengths[self.game_phase]
-        self.update_labels()
-
-    def next(self):
+    def next(self) -> tuple[int, str, GamePhase, bool]:
         """We need new card."""
-        card = self.cards_stack.pop()
-        self.move_by(card.value)
-        self.image_path = card.image
+        if len(self.cards.free_cards) == 0:
+            show_final_popup("No more cards!")
+            return (0, "", GamePhase.ZIMA, True)
 
+        # Ziskam novu kartu.
+        card = self.cards.get_card()
+        new_phase_begun = self.year.move_by(card.value)
+        if self.year.points_left <= 0:
+            self.cards.switch_phase()
+        if new_phase_begun and self.year.game_phase == GamePhase.ZIMA:
+            show_final_popup("Game is over!")
+            return (0, "", GamePhase.ZIMA, True)
+
+        return (
+            self.year.points_left,
+            card.image,
+            self.year.game_phase,
+            False
+        )
+    
 
 class KartographsLayout(FloatLayout):
     window_size = Window.size
     points_left_label = StringProperty("0")
     game_phase_label = StringProperty("JAR")
     image_path = StringProperty('')
-    game_phases_lengths = {
-        GamePhase.JAR: 8,
-        GamePhase.LETO: 8,
-        GamePhase.JESEN: 7,
-        GamePhase.ZIMA: 6
+    game_phase_dict = {
+        GamePhase.JAR: "JAR",
+        GamePhase.LETO: "LETO",
+        GamePhase.JESEN: "JESEN",
+        GamePhase.ZIMA: "ZIMA"
     }
-    game_phase: GamePhase = GamePhase.JAR
-    points_left = game_phases_lengths[game_phase]
-    cards_stack: list[Card] = get_all_cards("./media")
 
-    game: Game = Game(points_left_label, game_phase_label, image_path)
-
-    def update_labels(self):
-        self.points_left_label = str(self.points_left)
-        self.game_phase_label = str(self.game_phase)
+    game: Game = Game()
 
     def next(self):
-        """We need new card."""
-        if self.cards_stack == []:
-            # create content and add to the popup
-            content = Button(text='No cards left!!', size_hint=(400, 400))
-            popup = Popup(content=content, auto_dismiss=False)
-
-            # bind the on_press event of the button to the dismiss function
-            content.bind(on_press=popup.dismiss)
-
-            # open the popup
-            popup.open()
-        else:
-            card = self.cards_stack.pop()
-            self.points_left -= card.value
-            if self.points_left <= 0:
-                if self.game_phase == GamePhase.ZIMA:
-                    pass  # TODO 
-                else:
-                    self.game_phase = GamePhase(self.game_phase.value + 1)
-                    self.points_left = self.game_phases_lengths[self.game_phase]
-            self.image_path = card.image
-            self.update_labels()
+        points, image, phase, game_over = self.game.next()
+        if game_over:
+            return
+        self.points_left_label = str(points)
+        self.game_phase_label = self.game_phase_dict[phase]
+        self.image_path = image
 
 
 class KartographsApp(App):

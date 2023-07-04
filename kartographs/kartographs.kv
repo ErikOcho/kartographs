@@ -26,15 +26,15 @@
 					Label:
 						id: points_label
 						text: root.points_left_label
-						font_size: 15
+						font_size: 30
 			Image:
 				source: root.image_path
-				size_hint_y: 1.0
+				size_hint_y: 0.7
 				# pos_hint: {'top': 0.1}
 				allow_stretch: True
 			Label:
-				id: 'Game2'
-				text: 'Game2'
+				id: game_phase
+				text: root.game_phase_label
 				font_size: 20
 				size_hint_x: 0.2
 		BoxLayout:
@@ -43,7 +43,7 @@
 			spacing: 10
 			padding: 20
 			Button:
-				text: 'Generate next'
-				on_release: root.next()
+				text: '...'
 			Button:
 				text: 'Next'
+				on_release: root.next()
