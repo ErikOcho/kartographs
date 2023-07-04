@@ -34,6 +34,7 @@ class GamePhase(Enum):
 class CardType(Enum):
     SEARCH = 1
     BEAST = 2
+    TEMPLE = 3
 
 
 class Card():
@@ -57,6 +58,14 @@ def get_all_beast_cards(cards_dir: str) -> list[Card]:
     return cards
 
 
+def get_all_temple_cards(cards_dir: str) -> list[Card]:
+    cards = []
+    path_names = Path(cards_dir).glob('*.png')
+    for file_name in path_names:
+        cards.append(Card(0, file_name.as_posix(), CardType.BEAST))
+    return cards
+
+
 def get_all_search_cards(cards_dir: str) -> list[Card]:
     """Get all serach cards from directory. These cards have cost."""
     cards = []
@@ -64,7 +73,10 @@ def get_all_search_cards(cards_dir: str) -> list[Card]:
     pattern = re.compile(r"(\d+)_.+\.png")
     for file_name in path_names:
         res = re.search(pattern, file_name.name)
-        cards.append(Card(int(res.group(1)), file_name.as_posix(), CardType.SEARCH))
+        if re.match(r".*temple.*", file_name.name):
+            cards.append(Card(int(res.group(1)), file_name.as_posix(), CardType.TEMPLE))
+        else:
+            cards.append(Card(int(res.group(1)), file_name.as_posix(), CardType.SEARCH))
     return cards
 
 
@@ -79,7 +91,7 @@ class Year():
         }
         self.points_left = self.game_phases_lengths[self.game_phase]
 
-    def move_by(self, value: int) -> bool:
+    def move_by(self, value: int) -> tuple[bool, bool]:
         """Posunie čas o zadanú hodnotu.
 
         Args:
@@ -87,15 +99,20 @@ class Year():
 
         Returns:
             Príznak či nasleduje zmena fázy hry.
+            Priznak ci sa jedna o koniec hry.
         """
         new_phase_begun: bool = False
+        end_game: bool = False
         if self.points_left <= 0:
-            self.game_phase = GamePhase(self.game_phase.value + 1)
-            self.points_left = self.game_phases_lengths[self.game_phase]
-            new_phase_begun = True
+            if self.game_phase == GamePhase.ZIMA:
+                end_game = True
+            else:
+                self.game_phase = GamePhase(self.game_phase.value + 1)
+                self.points_left = self.game_phases_lengths[self.game_phase]
+                new_phase_begun = True
 
         self.points_left -= value
-        return new_phase_begun
+        return (new_phase_begun, end_game)
 
 
 def show_final_popup(title: str) -> None:
@@ -133,8 +150,10 @@ class CardsStacks():
 
     def get_card(self) -> Card:
         """Get card from stack."""
-        self.drawn_cards.append(self.free_cards[-1])
-        return self.free_cards.pop()
+        card = self.free_cards.pop()
+        if card.type != CardType.BEAST:
+            self.drawn_cards.append(card)
+        return card
 
 
 class Game():
@@ -156,12 +175,17 @@ class Game():
 
         # Ziskam novu kartu.
         card = self.cards.get_card()
-        new_phase_begun = self.year.move_by(card.value)
-        if self.year.points_left <= 0:
-            self.cards.switch_phase()
-        if new_phase_begun and self.year.game_phase == GamePhase.ZIMA:
+        new_phase_begun, end_game = self.year.move_by(card.value)
+
+        if end_game:
             show_final_popup("Game is over!")
             return (0, "", GamePhase.ZIMA, True)
+
+        if new_phase_begun:
+            # if self.year.game_phase == GamePhase.ZIMA:
+            #     show_final_popup("Game is over!")
+            #     return (0, "", GamePhase.ZIMA, True)
+            self.cards.switch_phase()
 
         return (
             self.year.points_left,
@@ -175,7 +199,7 @@ class KartographsLayout(FloatLayout):
     window_size = Window.size
     points_left_label = StringProperty("0")
     game_phase_label = StringProperty("JAR")
-    image_path = StringProperty('')
+    image_path = StringProperty('./media/obdobia/jar.png')
     game_phase_dict = {
         GamePhase.JAR: "JAR",
         GamePhase.LETO: "LETO",

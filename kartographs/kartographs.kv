@@ -21,16 +21,14 @@
 					spacing: 10
 					size_y: 100
 					Label:
-						text: 'Points left:'
-						font_size: 15
-					Label:
 						id: points_label
 						text: root.points_left_label
 						font_size: 30
+						font_weight: 'bold'
 			Image:
 				source: root.image_path
-				size_hint_y: 0.7
-				# pos_hint: {'top': 0.1}
+				size_hint_y: 0.9
+				pos_hint: {'center': 0.1}
 				allow_stretch: True
 			Label:
 				id: game_phase
