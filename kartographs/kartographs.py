@@ -4,9 +4,10 @@ import copy
 import random as rnd
 
 from pathlib import Path
+from dataclasses import dataclass
 
 import kivy
-kivy.require('2.0.0')  # replace with your current kivy version !
+kivy.require('2.0.0')
 
 from kivy.app import App
 from kivy.uix.scatter import Scatter
@@ -20,6 +21,7 @@ from kivy.utils import platform
 from kivy.properties import StringProperty
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
+
 
 Builder.load_file('kartographs.kv')
 
@@ -36,13 +38,12 @@ class CardType(Enum):
     BEAST = 2
     TEMPLE = 3
 
-
+@dataclass
 class Card():
     """Card class."""
-    def __init__(self, value: int, image: str, type: CardType = CardType.SEARCH):
-        self.value: int = value
-        self.image: str = image
-        self.type: CardType = type
+    value: int
+    image: str
+    type: CardType = CardType.SEARCH
 
 
 def get_all_beast_cards(cards_dir: str) -> list[Card]:

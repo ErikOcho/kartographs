@@ -1,2 +1,6 @@
 venv
 .vs
+build
+bin
+.buildozer
+
