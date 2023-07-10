@@ -32,21 +32,21 @@ def show_final_popup(title: str) -> None:
     popup.open()
 
 
-class KartographsLayout(FloatLayout):
-    window_size = Window.size
-    points_left_label = StringProperty("0")
-    game_phase_label = StringProperty("JAR")
-    image_path = StringProperty('./media/seasons/jar.png')
-    game: Game = Game()
+class KartographsLayoutCallBacks(FloatLayout):
+    def __init__(self):
+        self.window_size = Window.size
+        self.points_left_label = StringProperty("0")
+        self.game_phase_label = StringProperty("JAR")
+        self.image_path = StringProperty('./media/seasons/jar.png')
 
-    def next(self) -> None:
-        points, image, phase, game_over = self.game.next()
-        if game_over:
-            show_final_popup("Game is over!")
-            return
-        self.points_left_label = str(points)
-        self.game_phase_label = game_phase_dict[phase]
-        self.image_path = image
+    def on_points_left_change(self, value: int):
+        self.points_left_label = str(value)
+
+    def on_game_phase_change(self, game_phase: GamePhase):
+        self.game_phase_label = game_phase_dict[game_phase]
+
+    def on_image_path_change(self, value: str):
+        self.image_path = value
 
 
 class KartographsApp(App):
@@ -56,7 +56,9 @@ class KartographsApp(App):
         else:
             Window.size = (600, 800)
 
-        return KartographsLayout()
+        return KartographsLayoutCallBacks()
+
+
 
 
 if __name__ == "__main__":
