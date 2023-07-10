@@ -3,4 +3,4 @@ venv
 build
 bin
 .buildozer
-
+__pycache__
